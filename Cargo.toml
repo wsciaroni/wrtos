@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "wrtos-core",
+    "wrtos-codegen",
+    "wrtos-wcet",
+    "examples/simulation",
+]
+resolver = "2"

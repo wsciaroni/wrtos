@@ -1,0 +1,7 @@
+[package]
+name = "wrtos-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# core has no mandatory external dependencies to remain simple and compile for bare-metal no_std.
