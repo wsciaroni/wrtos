@@ -1,0 +1,7 @@
+[package]
+name = "uno-bsp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+wrtos-core = { path = "../../../wrtos-core" }

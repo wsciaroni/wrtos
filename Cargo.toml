@@ -4,5 +4,7 @@ members = [
     "wrtos-codegen",
     "wrtos-wcet",
     "examples/simulation",
+    "examples/uno-blinky",
+    "examples/uno-blinky/uno-bsp",
 ]
 resolver = "2"

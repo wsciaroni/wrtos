@@ -1,0 +1,8 @@
+[system]
+tick_rate_hz = 10
+major_cycle_frames = 10
+
+[[tasks]]
+name = "blink_led"
+func = "crate::blink_led"
+frames = [0, 5]

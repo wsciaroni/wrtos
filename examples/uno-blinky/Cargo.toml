@@ -1,0 +1,11 @@
+[package]
+name = "uno-blinky"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+wrtos-core = { path = "../../wrtos-core" }
+uno-bsp = { path = "uno-bsp" }
+
+[build-dependencies]
+wrtos-codegen = { path = "../../wrtos-codegen" }
