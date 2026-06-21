@@ -41,8 +41,8 @@ pub extern "C" fn main() -> ! {
     }
 
     // Setup Timer1: CTC mode, 16MHz clock, prescaler 64
-    // OCR1A = 24999 provides exactly 100ms (10Hz) ticks
-    let timer = uno_bsp::timer::UnoTimer::new(regs, 24999);
+    let ocr1a = (250000 / TICK_RATE_HZ) - 1;
+    let timer = uno_bsp::timer::UnoTimer::new(regs, ocr1a as u16);
 
     // Start Cyclic Executive
     let mut exec = wrtos_core::CyclicExecutive::new(SCHEDULE);
@@ -60,8 +60,8 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 fn main() {
     println!("=== Elegoo Arduino Uno R3 Blinky RTOS Simulation (Host Mode) ===");
     println!("Running the cyclic executive on the host using MockRegisters...");
-    println!("Tick Rate: {} Hz (100 ms frames)", TICK_RATE_HZ);
-    println!("Major Cycle: {} frames (1.0 second)\n", MAJOR_CYCLE_FRAMES);
+    println!("Tick Rate: {} Hz ({} ms frames)", TICK_RATE_HZ, 1000 / TICK_RATE_HZ);
+    println!("Major Cycle: {} frames ({} ms)\n", MAJOR_CYCLE_FRAMES, (1000 / TICK_RATE_HZ) * MAJOR_CYCLE_FRAMES as u32);
 
     let regs = uno_bsp::registers::MockRegisters::new();
 
@@ -73,7 +73,8 @@ fn main() {
     }
 
     // Setup Timer
-    let mut timer = uno_bsp::timer::UnoTimer::new(regs.clone(), 24999);
+    let ocr1a = (250000 / TICK_RATE_HZ) - 1;
+    let mut timer = uno_bsp::timer::UnoTimer::new(regs.clone(), ocr1a as u16);
     let mut exec = wrtos_core::CyclicExecutive::new(SCHEDULE);
 
     println!("Starting simulation for 2 major cycles (20 frames)...");
@@ -140,7 +141,8 @@ mod tests {
             GLOBAL_LED = Some(led);
         }
 
-        let mut timer = uno_bsp::timer::UnoTimer::new(regs.clone(), 24999);
+        let ocr1a = (250000 / TICK_RATE_HZ) - 1;
+        let mut timer = uno_bsp::timer::UnoTimer::new(regs.clone(), ocr1a as u16);
         let mut exec = wrtos_core::CyclicExecutive::new(SCHEDULE);
 
         // Frame 0: blink_led runs, LED turns ON

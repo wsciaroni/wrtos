@@ -177,6 +177,7 @@ impl AvrRegisters for RealRegisters {
 }
 
 /// The mock register storage for testing.
+#[cfg(not(target_arch = "avr"))]
 pub struct MockRegistersState {
     pub tccr1a: u8,
     pub tccr1b: u8,
@@ -194,11 +195,13 @@ pub struct MockRegistersState {
     pub udr0: u8,
 }
 
+#[cfg(not(target_arch = "avr"))]
 #[derive(Clone)]
 pub struct MockRegisters {
     state: std::rc::Rc<std::cell::RefCell<MockRegistersState>>,
 }
 
+#[cfg(not(target_arch = "avr"))]
 impl MockRegisters {
     pub fn new() -> Self {
         Self {
@@ -240,12 +243,14 @@ impl MockRegisters {
     pub fn set_udr0(&self, val: u8) { self.state.borrow_mut().udr0 = val; }
 }
 
+#[cfg(not(target_arch = "avr"))]
 impl Default for MockRegisters {
     fn default() -> Self {
         Self::new()
     }
 }
 
+#[cfg(not(target_arch = "avr"))]
 impl AvrRegisters for MockRegisters {
     fn write_tccr1a(&mut self, val: u8) { self.state.borrow_mut().tccr1a = val; }
     fn write_tccr1b(&mut self, val: u8) { self.state.borrow_mut().tccr1b = val; }
