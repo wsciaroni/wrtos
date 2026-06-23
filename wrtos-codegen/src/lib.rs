@@ -23,6 +23,7 @@ pub struct ScheduleConfig {
 pub enum ValidationError {
     InvalidTickRate,
     InvalidMajorCycleFrames,
+    TooManyMajorCycleFrames { limit: usize },
     EmptyTaskFrames(String),
     FrameIndexOutOfRange { task: String, frame: usize, limit: usize },
     EmptyTaskFunction(String),
@@ -34,6 +35,7 @@ impl std::fmt::Display for ValidationError {
         match self {
             ValidationError::InvalidTickRate => write!(f, "Tick rate must be greater than zero"),
             ValidationError::InvalidMajorCycleFrames => write!(f, "Major cycle frames must be greater than zero"),
+            ValidationError::TooManyMajorCycleFrames { limit } => write!(f, "Major cycle frames exceeds the maximum limit of {} (DoS prevention)", limit),
             ValidationError::EmptyTaskFrames(task) => write!(f, "Task '{}' must be scheduled in at least one frame", task),
             ValidationError::FrameIndexOutOfRange { task, frame, limit } => {
                 write!(f, "Task '{}' scheduled in frame {} which exceeds major cycle limit of {}", task, frame, limit)
@@ -54,6 +56,12 @@ pub fn validate_config(config: &ScheduleConfig) -> Result<(), ValidationError> {
     }
     if config.system.major_cycle_frames == 0 {
         return Err(ValidationError::InvalidMajorCycleFrames);
+    }
+
+    // Security check: Prevent memory exhaustion DoS during codegen string allocation
+    const MAX_MAJOR_CYCLE_FRAMES: usize = 10_000;
+    if config.system.major_cycle_frames > MAX_MAJOR_CYCLE_FRAMES {
+        return Err(ValidationError::TooManyMajorCycleFrames { limit: MAX_MAJOR_CYCLE_FRAMES });
     }
 
     for task in &config.tasks {
@@ -180,6 +188,14 @@ mod tests {
         config.system.major_cycle_frames = 0;
         let res = validate_config(&config);
         assert_eq!(res, Err(ValidationError::InvalidMajorCycleFrames));
+    }
+
+    #[test]
+    fn test_validate_too_many_major_cycle_frames() {
+        let mut config = parse_config(VALID_TOML).unwrap();
+        config.system.major_cycle_frames = 10_001; // MAX_MAJOR_CYCLE_FRAMES + 1
+        let res = validate_config(&config);
+        assert_eq!(res, Err(ValidationError::TooManyMajorCycleFrames { limit: 10_000 }));
     }
 
     #[test]
