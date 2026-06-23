@@ -49,7 +49,11 @@ impl CyclicExecutive {
             return Err(OverrunError);
         }
 
-        self.current_frame = (self.current_frame + 1) % self.major_cycle_frames;
+        // Optimization: Avoid expensive modulo/division on MCUs without hardware support
+        self.current_frame += 1;
+        if self.current_frame >= self.major_cycle_frames {
+            self.current_frame = 0;
+        }
         Ok(())
     }
 
@@ -67,7 +71,8 @@ mod tests {
     use super::*;
     use std::vec::Vec;
     use std::string::String;
-    use std::sync::Mutex;
+    use std::cell::RefCell;
+    use std::thread_local;
 
     // A mock timer for testing
     struct MockTimer {
@@ -85,19 +90,21 @@ mod tests {
         }
     }
 
-    // A thread-safe called task list
-    static CALLED_TASKS: Mutex<Vec<String>> = Mutex::new(Vec::new());
+    // A thread-local called task list to isolate tests from each other
+    thread_local! {
+        static CALLED_TASKS: RefCell<Vec<String>> = RefCell::new(Vec::new());
+    }
 
     fn get_called_tasks() -> Vec<String> {
-        CALLED_TASKS.lock().unwrap().clone()
+        CALLED_TASKS.with(|tasks| tasks.borrow().clone())
     }
 
     fn clear_called_tasks() {
-        CALLED_TASKS.lock().unwrap().clear();
+        CALLED_TASKS.with(|tasks| tasks.borrow_mut().clear());
     }
 
     fn record_task(name: &str) {
-        CALLED_TASKS.lock().unwrap().push(String::from(name));
+        CALLED_TASKS.with(|tasks| tasks.borrow_mut().push(String::from(name)));
     }
 
     fn task_a() { record_task("A"); }
