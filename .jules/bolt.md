@@ -1,0 +1,3 @@
+## 2024-06-23 - Modulo Operator Overhead on 8-bit Microcontrollers
+**Learning:** In 8-bit microcontrollers, such as the AVR used in `uno-blinky`, the modulo operator (`%`) is not inherently supported by hardware and often compiles to a slow software integer division routine, creating unexpected processing overhead in seemingly simple frame cycling.
+**Action:** When incrementing cyclically bounds (like frames or circular buffers) on embedded platforms, substitute modulo operations with a basic add-and-branch (`+= 1` followed by an `if` check).

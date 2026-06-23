@@ -86,7 +86,7 @@ fn main() {
 
         let frame = exec.current_frame();
         
-        if let Err(_) = exec.step(&mut timer) {
+        if exec.step(&mut timer).is_err() {
             println!("CRITICAL ERROR: Frame overrun in frame {}!", frame);
             std::process::exit(1);
         }

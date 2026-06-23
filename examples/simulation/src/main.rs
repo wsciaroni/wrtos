@@ -109,7 +109,7 @@ fn main() {
         let frame = exec.current_frame();
         println!("\n--- [Time: {:?}] Frame {} (Step {}/{}) ---", Instant::now(), frame, step_num + 1, total_steps);
         
-        if let Err(_) = exec.step(&mut timer) {
+        if exec.step(&mut timer).is_err() {
             println!("CRITICAL ERROR: Frame overrun detected in frame {}!", frame);
             std::process::exit(1);
         }

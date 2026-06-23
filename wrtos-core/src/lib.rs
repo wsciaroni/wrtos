@@ -49,7 +49,15 @@ impl CyclicExecutive {
             return Err(OverrunError);
         }
 
-        self.current_frame = (self.current_frame + 1) % self.major_cycle_frames;
+        // PERF: Replace modulo operator with add/branch.
+        // On 8-bit microcontrollers (like AVR in uno-blinky), the modulo operator compiles
+        // to a slow software integer division routine (taking many instruction cycles).
+        // A simple increment and compare is significantly faster for stepping the frame.
+        self.current_frame += 1;
+        if self.current_frame >= self.major_cycle_frames {
+            self.current_frame = 0;
+        }
+
         Ok(())
     }
 
