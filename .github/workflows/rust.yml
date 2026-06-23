@@ -15,7 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # Checkout with full history for SonarCloud analysis
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
