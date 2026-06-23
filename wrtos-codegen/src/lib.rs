@@ -26,6 +26,7 @@ pub enum ValidationError {
     EmptyTaskFrames(String),
     FrameIndexOutOfRange { task: String, frame: usize, limit: usize },
     EmptyTaskFunction(String),
+    InvalidTaskFunctionCharacters(String),
 }
 
 impl std::fmt::Display for ValidationError {
@@ -38,6 +39,7 @@ impl std::fmt::Display for ValidationError {
                 write!(f, "Task '{}' scheduled in frame {} which exceeds major cycle limit of {}", task, frame, limit)
             }
             ValidationError::EmptyTaskFunction(task) => write!(f, "Task '{}' has an empty function path", task),
+            ValidationError::InvalidTaskFunctionCharacters(task) => write!(f, "Task '{}' has invalid characters in its function path (only alphanumeric, underscores, and colons are allowed to prevent code injection)", task),
         }
     }
 }
@@ -58,6 +60,12 @@ pub fn validate_config(config: &ScheduleConfig) -> Result<(), ValidationError> {
         if task.func.trim().is_empty() {
             return Err(ValidationError::EmptyTaskFunction(task.name.clone()));
         }
+
+        // Security check: Prevent code injection in codegen by restricting allowed characters
+        if !task.func.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == ':') {
+            return Err(ValidationError::InvalidTaskFunctionCharacters(task.name.clone()));
+        }
+
         if task.frames.is_empty() {
             return Err(ValidationError::EmptyTaskFrames(task.name.clone()));
         }
@@ -203,6 +211,15 @@ mod tests {
         config.tasks[0].func = "".to_string();
         let res = validate_config(&config);
         assert_eq!(res, Err(ValidationError::EmptyTaskFunction("t1".to_string())));
+    }
+
+    #[test]
+    fn test_validate_invalid_task_function_chars() {
+        let mut config = parse_config(VALID_TOML).unwrap();
+        // Inject payload: dummy_func], &[], // bypass
+        config.tasks[0].func = "dummy_func], &[], // bypass".to_string();
+        let res = validate_config(&config);
+        assert_eq!(res, Err(ValidationError::InvalidTaskFunctionCharacters("t1".to_string())));
     }
 
     #[test]
