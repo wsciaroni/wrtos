@@ -49,7 +49,11 @@ impl CyclicExecutive {
             return Err(OverrunError);
         }
 
-        self.current_frame = (self.current_frame + 1) % self.major_cycle_frames;
+        // Optimization: Avoid expensive modulo/division on MCUs without hardware support
+        self.current_frame += 1;
+        if self.current_frame >= self.major_cycle_frames {
+            self.current_frame = 0;
+        }
         Ok(())
     }
 
