@@ -75,18 +75,22 @@ pub fn analyze_schedule(
     let mut frame_reports = Vec::new();
     let mut has_overruns = false;
 
-    for i in 0..config.system.major_cycle_frames {
-        let mut total_wcet = Duration::ZERO;
+    // Optimization: Replace O(F * T * F_T) loop over frames and tasks
+    // with O(T * F_T) loop by aggregating WCETs into frames.
+    let mut frame_wcets = vec![Duration::ZERO; config.system.major_cycle_frames];
 
-        for task in &config.tasks {
-            if task.frames.contains(&i) {
-                let &wcet = task_wcets.get(&task.name).ok_or_else(|| {
-                    AnalysisError::MissingTaskWcet(task.name.clone())
-                })?;
-                total_wcet += wcet;
+    for task in &config.tasks {
+        let &wcet = task_wcets.get(&task.name).ok_or_else(|| {
+            AnalysisError::MissingTaskWcet(task.name.clone())
+        })?;
+        for &frame in &task.frames {
+            if frame < config.system.major_cycle_frames {
+                frame_wcets[frame] += wcet;
             }
         }
+    }
 
+    for (i, total_wcet) in frame_wcets.into_iter().enumerate() {
         let overrun = total_wcet > budget;
         if overrun {
             has_overruns = true;
