@@ -5,6 +5,11 @@ A deterministic, performant, and simple Real-Time Operating System (RTOS) writte
 `wrtos` utilizes a **Time-Triggered / Cyclic Executive** model. It does not support interrupts; instead, all operations are scheduled statically to guarantee absolute determinism. System execution is governed by a single hardware timer that ticks at a fixed interval.
 
 ---
+## Badges
+
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=wsciaroni_wrtos&metric=coverage)](https://sonarcloud.io/summary/new_code?id=wsciaroni_wrtos)
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=wsciaroni_wrtos&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=wsciaroni_wrtos)
 
 ## Architecture Overview
 
